@@ -21,14 +21,17 @@ library(edgar)
 ###### DATA IMPORT #######
 
 # Select the stocks you want and the date range
-tickers <- c("AAPL", "MO", "NVO", "RIVN")
-first_date <- Sys.Date() - 180
+tickers <- c("AAPL", "MO", "NVO", "RIVN","META","BRK-B")
+first_date <- Sys.Date() - 360
 last_date <- Sys.Date()
 db <- yf_get(
   tickers = tickers,
   first_date = first_date,
   last_date = last_date
 )
+
+# New column for percentage movement from nominal starting point
+db$percent_adj_movement <- (db$cumret_adjusted_prices-1)*100
 
 # Use Quantmod to get historic data and for plots
 getSymbols(tickers)
@@ -40,8 +43,21 @@ symbols <- getSymbols(tickers, src='yahoo', env=stockEnv)
 
 
 ###### PLOTTING ######
+
+# Plot all 4 graphs in a standard format
 for (stock in ls(stockEnv)){
   chartSeries(stockEnv[[stock]], theme="white", name=tickers,
               TA="addVo();addBBands();addCCI();addSMA(20, col='blue');
         addSMA(5, col='red');addSMA(50, col='black')", subset='last 180 days')     
 }
+
+# Plot 1 covering generic adjusted data for each company
+p1 <- ggplot(data=db, aes(x=ref_date)) +
+  geom_line(aes(y=percent_adj_movement, color=ticker)) +
+  theme_bw() +
+  xlab('Date') + ylab('Percent Change [%]') +
+  ggtitle('Stock Performance Over Period of Time') +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_color_discrete(name = "Stocks")
+p1
+
