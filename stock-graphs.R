@@ -21,7 +21,7 @@ library(edgar)
 ###### DATA IMPORT #######
 
 # Select the stocks you want and the date range
-tickers <- c("AAPL", "MO", "NVO", "RIVN","META","BRK-B")
+tickers <- c("TSLA","MO","BRK-A","F")
 first_date <- Sys.Date() - 360
 last_date <- Sys.Date()
 db <- yf_get(
@@ -40,7 +40,9 @@ symbols <- getSymbols(tickers, src='yahoo', env=stockEnv)
 
 
 ###### DATA ANALYSIS #######
-
+F <- na.omit(F)
+F$MA_50 <- SMA(F$F.Close, n = 50)
+F$MA_200 <- SMA(F$F.Close, n = 200)
 
 ###### PLOTTING ######
 
@@ -60,4 +62,15 @@ p1 <- ggplot(data=db, aes(x=ref_date)) +
   theme(plot.title = element_text(hjust = 0.5)) +
   scale_color_discrete(name = "Stocks")
 p1
+
+# Plot only 1 stock
+p2 <- ggplot(data = F, aes(x = Index)) +
+  geom_line(aes(y = F.Close), color = "blue", size = 1) +
+  geom_line(aes(y = MA_50), color = "orange", size = 1) +
+  geom_line(aes(y = MA_200), color = "red", size = 1) +
+  labs(title = "Ford Stock Price with Moving Averages",
+       x = "Date", y = "Price") +
+  scale_y_log10() +
+  theme_minimal()
+p2
 
